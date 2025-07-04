@@ -15,10 +15,8 @@ app = FastAPI()
 
 # ----------- Input Data Schema -----------
 class InputData(BaseModel):
-    area: int
     rooms_number: int
     zip_code: int
-
     property_type: Literal["APARTMENT", "HOUSE"]
     building_state: Optional[
         Literal["NEW", "GOOD", "JUST RENOVATED", "TO BE DONE UP", "TO RENOVATE", 
