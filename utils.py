@@ -1,6 +1,3 @@
-# Joblib required to dump the model
-import joblib
-
 # Preprocessing libraries
 from sklearn.metrics import mean_squared_error, mean_absolute_error, r2_score
 
