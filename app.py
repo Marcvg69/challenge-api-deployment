@@ -41,7 +41,6 @@ class InputData(BaseModel):
 # ------------------
 
 model = joblib.load("model/catboost_model.pkl")
-encoder = joblib.load("model/encoder.pkl")
 
 # ------------------
 # 🔹 Prediction endpoint
