@@ -32,7 +32,7 @@ def modelCAT(df, target, obs, results_df=None):
 
     # Initialize model
     model = CatBoostRegressor(verbose=0, random_state=123)
-
+    
     # Fit on training set
     model.fit(X_train, y_train)
 

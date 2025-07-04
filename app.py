@@ -2,13 +2,12 @@
 # A /predict endpoint with GET and POST methods
 # Placeholder logic for loading the model, preprocessing, and prediction
 
-from fastapi import FastAPI, Request, HTTPException
-from pydantic import BaseModel, Field
+from fastapi import FastAPI,HTTPException
+from pydantic import BaseModel
 from typing import Optional, Literal
-import joblib
 from preprocessing.cleaning_data import preprocess
-from predict.prediction import predict_price as predict  # ✅
-
+from predict.prediction import predict_price as predict  
+import numpy as np
 
 # Create the app instance
 app = FastAPI()
@@ -51,13 +50,18 @@ def predict_info():
 @app.post("/predict")
 def predict_price(request_body: RequestBody):
     try:
-        input_dict = request_body.data.dict()
+        input_dict = request_body.data.model_dump()
+        print(f"input_dict: {input_dict}")
         processed_data = preprocess(input_dict)  # Preprocessing (your colleague Manu)
         price = predict(processed_data)          # Prediction function
-        return {"prediction": price, "status_code": 200}
+        price = round(np.expm1(price))  # arrondi to euro
+
+        return {"prediction": f"{price} €", "status_code": 200}
     except ValueError as ve:
+        print(f"ValueError: {ve}")  # Add for debug
         raise HTTPException(status_code=400, detail=str(ve))
     except Exception as e:
+        print(f"Internal Error: {e}")  # Add for debug
         raise HTTPException(status_code=500, detail=f"Internal error: {str(e)}")
     
     
