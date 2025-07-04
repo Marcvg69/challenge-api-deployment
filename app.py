@@ -1,63 +1,75 @@
-# A health check route at /
-# A /predict endpoint with GET and POST methods
-# Placeholder logic for loading the model, preprocessing, and prediction
-
-from fastapi import FastAPI, Request, HTTPException
+from fastapi import FastAPI, HTTPException, Request
 from pydantic import BaseModel, Field
-from typing import Optional, Literal
+from typing import Optional
 import joblib
-from preprocessing.cleaning_data import preprocess
-from predict.prediction import predict_price as predict  # ✅
+import pandas as pd
 
-
-# Create the app instance
 app = FastAPI()
 
-# ----------- Input Data Schema -----------
-class InputData(BaseModel):
-    area: int
-    property_type: Literal["APARTMENT", "HOUSE", "OTHERS"]
-    rooms_number: int
-    zip_code: int
-    land_area: Optional[int] = None
+# ------------------
+# 🔹 Define input schema
+# ------------------
+
+class PropertyData(BaseModel):
+    area: float
+    property_type: str = Field(..., alias="property-type")
+    rooms_number: int = Field(..., alias="rooms-number")
+    zip_code: int = Field(..., alias="zip-code")
+    land_area: Optional[float] = Field(None, alias="land-area")
     garden: Optional[bool] = None
-    garden_area: Optional[int] = None
-    equipped_kitchen: Optional[bool] = None
-    full_address: Optional[str] = None
-    swimming_pool: Optional[bool] = None
+    garden_area: Optional[float] = Field(None, alias="garden-area")
+    equipped_kitchen: Optional[bool] = Field(None, alias="equipped-kitchen")
+    full_address: Optional[str] = Field(None, alias="full-address")
+    swimming_pool: Optional[bool] = Field(None, alias="swimming-pool")
     furnished: Optional[bool] = None
-    open_fire: Optional[bool] = None
+    open_fire: Optional[bool] = Field(None, alias="open-fire")
     terrace: Optional[bool] = None
-    terrace_area: Optional[int] = None
-    facades_number: Optional[int] = None
-    building_state: Optional[
-        Literal["NEW", "GOOD", "TO RENOVATE", "JUST RENOVATED", "TO REBUILD"]
-    ] = None
+    terrace_area: Optional[float] = Field(None, alias="terrace-area")
+    facades_number: Optional[int] = Field(None, alias="facades-number")
+    building_state: Optional[str] = Field(None, alias="building-state")
 
-class RequestBody(BaseModel):
-    data: InputData
+    class Config:
+        allow_population_by_field_name = True
+        extra = "ignore"  # Ignore unknown fields
 
-# ----------- Routes -----------
-@app.get("/")
-def root():
-    return {"message": "alive"}
+class InputData(BaseModel):
+    data: PropertyData
 
-@app.get("/predict")
-def predict_info():
-    return {
-        "message": "Send a POST request to /predict with JSON body in the specified input format to get a price prediction."
-    }
+
+# ------------------
+# 🔹 Load model and encoder
+# ------------------
+
+model = joblib.load("model/catboost_model.pkl")
+encoder = joblib.load("model/encoder.pkl")
+
+# ------------------
+# 🔹 Prediction endpoint
+# ------------------
 
 @app.post("/predict")
-def predict_price(request_body: RequestBody):
+async def predict(request: Request):
     try:
-        input_dict = request_body.data.dict()
-        processed_data = preprocess(input_dict)  # Preprocessing (your colleague Manu)
-        price = predict(processed_data)          # Prediction function
-        return {"prediction": price, "status_code": 200}
-    except ValueError as ve:
-        raise HTTPException(status_code=400, detail=str(ve))
+        raw = await request.json()
+        print("📦 Incoming raw request:", raw)
+
+        # Check and parse "data"
+        if "data" not in raw:
+            raise HTTPException(status_code=400, detail="Missing 'data' field in request body.")
+
+        # Parse to model (accept aliases like hyphens)
+        parsed_data = InputData(**raw)
+        data = parsed_data.data
+
+        # Convert to DataFrame
+        df = pd.DataFrame([data.dict(by_alias=True)])
+
+        # Encode + Predict
+        df_encoded = encoder.transform(df)
+        prediction = model.predict(df_encoded)
+
+        return {"predicted_price": float(prediction[0])}
+
     except Exception as e:
+        print(f"❌ Internal error: {str(e)}")
         raise HTTPException(status_code=500, detail=f"Internal error: {str(e)}")
-    
-    
