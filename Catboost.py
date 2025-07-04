@@ -35,6 +35,12 @@ def modelCAT(df, target, obs, results_df=None):
     # Fit on training set
     model.fit(X_train, y_train)
 
+    # Save in JSON or pickle format
+    model.save_model("model/catboost_model.pkl", format="cbm")  # can also use 'json'
+    loaded_model = joblib.load("model/my_model.joblib")
+    prediction = loaded_model.predict(X_test)
+
+
     # Predict on train and test sets
     y_train_pred = model.predict(X_train)
     y_test_pred = model.predict(X_test)
