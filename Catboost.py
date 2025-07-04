@@ -1,24 +1,21 @@
-# Dump the model
-import joblib
-
-
-# Utils functions
-from utils import regResults, plotCatBoostImportance
-
-# Data wrangling libraries
 import pandas as pd
 import numpy as np
+import joblib
+from catboost import CatBoostRegressor
+import matplotlib.pyplot as plt
+import seaborn as sns
+from sklearn.model_selection import train_test_split
+from sklearn.metrics import mean_squared_error, r2_score
+from utils import regResults, plotCatBoostImportance
+from sklearn.model_selection import KFold
+from sklearn.model_selection import cross_val_predict
+
 import time
 import warnings
 warnings.filterwarnings("ignore") 
 import os
 os.makedirs("outputs", exist_ok=True)
 
-from sklearn.model_selection import KFold, cross_val_predict
-from sklearn.model_selection import KFold, RepeatedKFold, cross_val_predict, GridSearchCV, RandomizedSearchCV, train_test_split
-
-# Regression libraries
-from catboost import CatBoostRegressor
 
 # Output settings
 pd.set_option('display.max_columns', None) # display all columns
@@ -41,6 +38,13 @@ def modelCAT(df, target, obs, results_df=None):
 
 # Save the model
     joblib.dump(model, "model/catboost_model.joblib")
+# Save in CatBoost's native format
+    model.save_model("model/catboost_model.cbm", format="cbm")
+
+# Later: Load using CatBoost
+    loaded_model = CatBoostRegressor()
+    loaded_model.load_model("model/catboost_model.cbm", format="cbm")
+
 
 # Test Load using joblib
     loaded_model = joblib.load("model/catboost_model.joblib")
