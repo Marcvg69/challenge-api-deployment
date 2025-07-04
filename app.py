@@ -7,7 +7,8 @@ from pydantic import BaseModel, Field
 from typing import Optional, Literal
 import joblib
 from preprocessing.cleaning_data import preprocess
-from predict.prediction import predict
+from predict.prediction import predict_price as predict  # ✅
+
 
 # Create the app instance
 app = FastAPI()
@@ -58,3 +59,5 @@ def predict_price(request_body: RequestBody):
         raise HTTPException(status_code=400, detail=str(ve))
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Internal error: {str(e)}")
+    
+    
