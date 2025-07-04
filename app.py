@@ -8,8 +8,7 @@ from typing import Optional, Literal
 import joblib
 from preprocessing.cleaning_data import preprocess
 from predict.prediction import predict_price as predict  # 
-from typing import List
-
+from typing import Literal, Optional
 
 # Create the app instance
 app = FastAPI()
@@ -17,14 +16,18 @@ app = FastAPI()
 # ----------- Input Data Schema -----------
 class InputData(BaseModel):
     area: int
-    property_type: List[str] = ['APARTMENT', 'HOUSE']
-    rooms_number = int
+    rooms_number: int
     zip_code: int
-    garden: bool | None = None
-    swimming_pool: bool | None = None
-    terrace: bool | None = None
-    building_state: List[str] = ["NEW", "GOOD", "JUST RENOVATED", 'TO BE DONE UP', "TO RENOVATE", "TO RESTORE"] | None
 
+    property_type: Literal["APARTMENT", "HOUSE"]
+    building_state: Optional[
+        Literal["NEW", "GOOD", "JUST RENOVATED", "TO BE DONE UP", "TO RENOVATE", 
+                "TO RESTORE"]
+    ] = None
+    garden: Optional[bool] = False
+    swimming_pool: Optional[bool] = False
+    terrace: Optional[bool] = False
+    equipped_kitchen: Optional[bool] = False  # You had this in preprocess, but not in model
 
 class RequestBody(BaseModel):
     data: InputData
@@ -43,8 +46,8 @@ def predict_info():
 @app.post("/predict")
 def predict_price(request_body: RequestBody):
     try:
-        input_dict = request_body.data.model_dump()
-        processed_data = preprocess(input_dict)  # Preprocessing (your colleague Manu)
+        input_data = InputData(**request_body)
+        processed_data = preprocess(input_data.model_dump())  # Preprocessing (your colleague Manu)
         price = predict(processed_data)          # Prediction function
         return {"prediction": price, "status_code": 200}
     except ValueError as ve:
