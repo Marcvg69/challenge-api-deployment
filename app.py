@@ -2,7 +2,9 @@ from fastapi import FastAPI, HTTPException, Request
 from pydantic import BaseModel, Field
 from typing import Optional
 import joblib
-import pandas as pd
+from preprocessing.cleaning_data import preprocess
+from predict.prediction import predict_price as predict  # 
+from typing import List
 
 app = FastAPI()
 
@@ -69,7 +71,7 @@ async def predict(request: Request):
         prediction = model.predict(df_encoded)
 
         return {"predicted_price": float(prediction[0])}
-
+      
     except Exception as e:
         print(f"❌ Internal error: {str(e)}")
         raise HTTPException(status_code=500, detail=f"Internal error: {str(e)}")
