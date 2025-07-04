@@ -1,52 +1,77 @@
-# A health check route at /
-# A /predict endpoint with GET and POST methods
-# Placeholder logic for loading the model, preprocessing, and prediction
-
-from fastapi import FastAPI, Request, HTTPException
+from fastapi import FastAPI, HTTPException, Request
 from pydantic import BaseModel, Field
-from typing import Optional, Literal
+from typing import Optional
 import joblib
 from preprocessing.cleaning_data import preprocess
 from predict.prediction import predict_price as predict  # 
 from typing import List
 
-
-# Create the app instance
 app = FastAPI()
 
-# ----------- Input Data Schema -----------
+# ------------------
+# 🔹 Define input schema
+# ------------------
+
+class PropertyData(BaseModel):
+    area: float
+    property_type: str = Field(..., alias="property-type")
+    rooms_number: int = Field(..., alias="rooms-number")
+    zip_code: int = Field(..., alias="zip-code")
+    land_area: Optional[float] = Field(None, alias="land-area")
+    garden: Optional[bool] = None
+    garden_area: Optional[float] = Field(None, alias="garden-area")
+    equipped_kitchen: Optional[bool] = Field(None, alias="equipped-kitchen")
+    full_address: Optional[str] = Field(None, alias="full-address")
+    swimming_pool: Optional[bool] = Field(None, alias="swimming-pool")
+    furnished: Optional[bool] = None
+    open_fire: Optional[bool] = Field(None, alias="open-fire")
+    terrace: Optional[bool] = None
+    terrace_area: Optional[float] = Field(None, alias="terrace-area")
+    facades_number: Optional[int] = Field(None, alias="facades-number")
+    building_state: Optional[str] = Field(None, alias="building-state")
+
+    class Config:
+        allow_population_by_field_name = True
+        extra = "ignore"  # Ignore unknown fields
+
 class InputData(BaseModel):
-    area: int
-    property_type: List[str] = ['APARTMENT', 'HOUSE']
-    rooms_number = int
-    zip_code: int
-    garden: bool | None = None
-    swimming_pool: bool | None = None
-    terrace: bool | None = None
-    building_state: List[str] = ["NEW", "GOOD", "JUST RENOVATED", 'TO BE DONE UP', "TO RENOVATE", "TO RESTORE"] | None
+    data: PropertyData
 
-class RequestBody(BaseModel):
-    data: InputData
 
-# ----------- Routes -----------
-@app.get("/")
-def root():
-    return {"message": "alive"}
+# ------------------
+# 🔹 Load model and encoder
+# ------------------
 
-@app.get("/predict")
-def predict_info():
-    return {
-        "message": "Send a POST request to /predict with JSON body in the specified input format to get a price prediction."
-    }
+model = joblib.load("model/catboost_model.pkl")
+encoder = joblib.load("model/encoder.pkl")
+
+# ------------------
+# 🔹 Prediction endpoint
+# ------------------
 
 @app.post("/predict")
-def predict_price(request_body: RequestBody):
+async def predict(request: Request):
     try:
-        input_dict = request_body.data.model_dump()
-        processed_data = preprocess(input_dict)  # Preprocessing (your colleague Manu)
-        price = predict(processed_data)          # Prediction function
-        return {"prediction": price, "status_code": 200}
-    except ValueError as ve:
-        raise HTTPException(status_code=400, detail=str(ve))
+        raw = await request.json()
+        print("📦 Incoming raw request:", raw)
+
+        # Check and parse "data"
+        if "data" not in raw:
+            raise HTTPException(status_code=400, detail="Missing 'data' field in request body.")
+
+        # Parse to model (accept aliases like hyphens)
+        parsed_data = InputData(**raw)
+        data = parsed_data.data
+
+        # Convert to DataFrame
+        df = pd.DataFrame([data.dict(by_alias=True)])
+
+        # Encode + Predict
+        df_encoded = encoder.transform(df)
+        prediction = model.predict(df_encoded)
+
+        return {"predicted_price": float(prediction[0])}
+      
     except Exception as e:
+        print(f"❌ Internal error: {str(e)}")
         raise HTTPException(status_code=500, detail=f"Internal error: {str(e)}")
