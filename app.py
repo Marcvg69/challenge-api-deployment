@@ -25,7 +25,6 @@ class InputData(BaseModel):
     terrace: bool | None = None
     building_state: List[str] = ["NEW", "GOOD", "JUST RENOVATED", 'TO BE DONE UP', "TO RENOVATE", "TO RESTORE"] | None
 
-
 class RequestBody(BaseModel):
     data: InputData
 
