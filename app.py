@@ -1,7 +1,6 @@
 from fastapi import FastAPI, HTTPException, Request
 from pydantic import BaseModel, Field
 from typing import Optional
-import joblib
 from preprocessing.cleaning_data import preprocess
 from predict.prediction import predict_price as predict  # 
 from typing import Literal, Optional
@@ -10,24 +9,22 @@ from enum import Enum
 from fastapi.responses import JSONResponse
 from fastapi import status
 from fastapi import HTTPException, Request
+import os
+
+
+# Set port to the env variable PORT to make it easy to choose the port on the server
+# If the Port env variable is not set, use port 8000
+PORT = os.environ.get("PORT", 8000)
 
 # Create the app instance
+#app = FastAPI(port=PORT)
 app = FastAPI()
 
 # ------------------
-# 🔹 Define input schema
+#  Define input schema
 # ------------------
 
-class EPCScore(str, Enum):
-    A_pluplus = 'A++', 
-    A_plus = 'A+', 
-    A='A' 
-    B='B' 
-    C='C'
-    D='D' 
-    E='E'
-    F='F'
-    G='G'
+# check http://localhost:8000/openapi.json
 
 class BuildingState(str, Enum):
     NEW = "NEW"
@@ -42,18 +39,18 @@ class PropertyType(str, Enum):
     HOUSE="HOUSE"
 
 class InputData(BaseModel):
-    rooms_number: int
-    area: float
+    rooms_number: int = Field(
+        ..., gt=0, description="Number of rooms. Must be greater than 0."
+    )
+    area: float = Field(
+        ..., gt=10, description="Area in square meters. Must be greater than 10."
+    )
     lift: Optional[bool] = False
     garden: Optional[bool] = False
-    swimming_pool: Optional[bool] = False
+    swimming_pool: Optional[bool] = False 
     terrace: Optional[bool] = False
-    parking: Optional[bool] = False
-    epc_score: Optional[EPCScore]=Field(
-        'E', description='EPC Score of the property. Options: A++, A+, A, B, C, D, E, F, G' 
-    )
     building_state: Optional[BuildingState] = Field(
-        'GOOD', description="Condition of the property. Options: NEW, GOOD, JUST RENOVATED, TO BE DONE UP, TO RENOVATE, TO RESTORE."
+        'TO BE DONE UP', description="Condition of the property. Options: NEW, GOOD, JUST RENOVATED, TO BE DONE UP, TO RENOVATE, TO RESTORE."
     )
     property_type: PropertyType = Field(description='Type of the property required. APARTMENT, HOUSE')
     #Literal["APARTMENT", "HOUSE"]
@@ -63,18 +60,41 @@ class InputData(BaseModel):
     ] = None"""
     zip_code: int
 
-"""class RequestBody(BaseModel):
-    data: InputData"""
+# ------------------
+#  Define output schema
+# ------------------
+
+class PredictionResponse(BaseModel):
+    prediction: Optional[float]
+    status_code: Optional[int]
+
+def get_frontend_data():
+    url = "http://host.docker.internal:3000/"
+    try:
+        response = Request.get(url)
+        response.raise_for_status()
+        return response.json()
+    except Request.RequestException as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
 # ----------- Routes -----------
 @app.get("/")
 def root():
     return {"message": "alive"}
 
+"""@app.get("/get-frontend")
+def read_frontend_data():
+    
+    #GET endpoint that fetches data from frontend at http://host.docker.internal:3000/
+    
+    data = get_frontend_data()
+    return {"frontend_data": data}"""
+
+# check http://localhost:8000/predict
 @app.get("/predict")
 def predict_info():
     return {
-        "epc_score_options": [score.value for score in EPCScore],
+        #"epc_score_options": [score.value for score in EPCScore],
         "building_state_options": [state.value for state in BuildingState],
         "property_type_options": [ptype.value for ptype in PropertyType]
     }
@@ -95,7 +115,7 @@ async def generic_exception_handler(request: Request, exc: Exception):
         content={"detail": f"Internal server error: {str(exc)}"},
     )
 
-@app.post("/predict")
+@app.post("/predict", response_model=PredictionResponse)
 async def predict_endpoint(input_data: InputData):
     try:
         processed_data = preprocess(input_data.model_dump())
