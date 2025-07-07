@@ -26,6 +26,8 @@ challenge-api-deployment/
 
 ## A FastAPI-powered service predicting property prices for Belgium.
 
+## INput /Output schema
+
 ## Routes
 
     GET / : Check if server is alive.
@@ -73,16 +75,19 @@ challenge-api-deployment/
     Clone the repo
 
     Build and run:
-
+```bash
     docker build -t challenge-api-deployment .
-    docker run -p 8000:8000 challenge-api-deployment
 
+    docker run -p 8000:8000 challenge-api-deployment
+```
     Use Swagger UI at http://localhost:8000/docs for testing.
 
 ## Render Deployment Checklist
 
 ✅ Link GitHub repo with Render.
+
 ✅ Use Docker deployment option.
+
 ✅ Add environment variable:
 
 PORT = 8000
@@ -91,6 +96,7 @@ PORT = 8000
 ## How to test for correctness
 
 1️⃣ Deploy on Render.
+
 2️⃣ Use Swagger UI (/docs) to send:
 
 {
