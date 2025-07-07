@@ -13,6 +13,10 @@ df = pd.read_csv(file)
 # transform price to logarithm
 df = df.assign(price=np.log1p(df['price']))
 
+# dropping columns
+df = df.drop("hasparking", axis='columns')
+df = df.drop("epcscore_encoded", axis='columns')
+
 # Split into train/test
 X = df.drop(columns=['price'])
 y = df['price']
@@ -29,4 +33,4 @@ clf =CatBoostRegressor(verbose=0, random_state=123)
 clf.fit(x_train, y_train)
 
 # Saving the trained model
-joblib.dump(clf, "model/ego_catboost.joblib")
+joblib.dump(clf, "model/catboost.joblib")
