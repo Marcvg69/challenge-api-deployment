@@ -148,6 +148,8 @@ venv/
 ENV/
 env.bak/
 venv.bak/
+cad/
+
 
 # Spyder project settings
 .spyderproject

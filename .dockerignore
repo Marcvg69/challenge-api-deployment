@@ -1,0 +1,51 @@
+# Byte-compiled / cache
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+
+# Virtual environments
+venv/
+env/
+.venv/
+cad/
+cad
+
+# Git
+.git/
+.gitignore
+
+# Local config files
+*.env
+*.env.*  # If you keep local .env files
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Jupyter notebooks (optional)
+*.ipynb
+
+# Large data files
+*.csv
+*.tsv
+*.parquet
+*.xlsx
+*.h5
+*.pkl
+*.cbm  # CatBoost binary model files
+
+# Logs
+*.log
+
+# Node / frontend (if you have any)
+node_modules/
+
+# Build / dist
+build/
+dist/
+*.egg-info/
+
+# Misc
+*.bak
+*.swp
