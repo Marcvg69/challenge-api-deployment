@@ -94,7 +94,7 @@ challenge-api-deployment/
 
     Access the interactive API docs at:
 
-    https://<your-render-url>/docs
+    https://challenge-api-deployment-l0wh.onrender.com/docs#/
 
 
 ## Usage
