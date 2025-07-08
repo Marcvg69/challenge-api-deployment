@@ -56,6 +56,7 @@ def preprocess(input_dict: dict):
 
     # Fill missing optional fields with defaults
     optional_fields = {
+        'lift': False,
         "garden": False,
         "swimming_pool": False,
         "terrace": False,
@@ -67,7 +68,7 @@ def preprocess(input_dict: dict):
         df[key] = df[key].fillna(default)
 
     # Boolean fields to int
-    bool_fields = ["garden", "swimming_pool", "terrace"] # parking
+    bool_fields = ['lift', "garden", "swimming_pool", "terrace"] # parking
     for field in bool_fields:
         df[field] = df[field].astype(int)
     
