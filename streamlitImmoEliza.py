@@ -49,14 +49,6 @@ st.markdown("""
 st.sidebar.title("Navigation")
 page = st.sidebar.radio("Go to", ["🏠 Home", "📈 Predict", "📊 Visualize", "⚙️ Settings"])
 
-# ---------- LOAD MODEL ----------
-@st.cache_resource
-def load_model():
-    model = CatBoostRegressor()
-    model.load_model("model/catboost_model.cbm")
-    return model
-
-model = load_model()
 
 # ---------- INIT SETTINGS ----------
 if "use_lat_long" not in st.session_state:
@@ -90,46 +82,53 @@ elif page == "📈 Predict":
     with st.form("prediction_form"):
         col1, col2 = st.columns(2)
         with col1:
-            area = st.number_input("Area (m²)", min_value=10, max_value=1500, value=10)
-            rooms_number = st.number_input("Number of bedrooms", min_value=0, max_value=15, value=0)
-            zip_code = st.number_input("Zip code", min_value=1000, max_value=9992, value=1000)
+            area = st.number_input("Living area (m²):", min_value=10, step=1)
+            rooms_number = st.number_input("Number of rooms:", min_value=1, step=1)
+            zip_code = st.number_input("Postal code:", min_value=1000, max_value=9992, step=1)
         with col2:
-            property_type = st.selectbox("Property Type", ["APARTMENT", "HOUSE"])
-            building_state = st.selectbox("Building Condition", [
-                "NEW", "GOOD", "JUST RENOVATED", "TO BE DONE UP", "TO RENOVATE", "TO RESTORE"
-            ])
-            terrace = st.checkbox("Terrace", value=False)
-            garden = st.checkbox("Garden", value=False)
-            swimming_pool = st.checkbox("Swimming Pool", value=False)
+            property_type = st.selectbox("Property Type:", ["APARTMENT", "HOUSE"])
+            building_state = st.selectbox(
+                "Building state:",
+                ["NEW", "JUST RENOVATED", "TO BE DONE UP", "GOOD", "TO RENOVATE", "TO RESTORE"]
+            )
+            lift = st.checkbox("Lift")
+            garden = st.checkbox("Garden")
+            terrace = st.checkbox("Terrace")
+            swimming_pool = st.checkbox("Swimming Pool")
 
         submitted = st.form_submit_button("💰 Predict Price")
 
         if submitted:
-            input_dict = {
-                "habitablesurface": area,
-                "bedroomcount": rooms_number,
-                "zip_code": int(zip_code),
-                "property_type": property_type,
+            input_data = {
+                "rooms_number": rooms_number,
+                "area": area,
+                "lift": lift,
+                "garden": garden,
+                "swimming_pool": swimming_pool,
+                "terrace": terrace,
                 "building_state": building_state,
-                "hasterrace": terrace,
-                "hasgarden": garden,
-                "hasswimmingpool": swimming_pool
+                "property_type": property_type,
+                "zip_code": zip_code
             }
 
-            # ---------- Handle settings manually without modifying preprocess ----------
-            input_dict_adapted = input_dict.copy()
+            # Adapt settings without modifying preprocess
+            input_data_adapted = input_data.copy()
             if not st.session_state.use_region:
-                input_dict_adapted["zip_code"] = 9999  # fallback to Unknown region
+                input_data_adapted["zip_code"] = 9999
             if not st.session_state.use_lat_long:
-                input_dict_adapted["zip_code"] = "0000"  # invalid to skip lat/long
+                input_data_adapted["zip_code"] = "0000"
 
             try:
-                with st.spinner("Processing and predicting, please wait..."):
-                    processed_data = cd.preprocess(input_dict_adapted)
-                    prediction = predict(processed_data)
-                    st.success(f"💰 **Estimated Price: €{int(prediction):,}**")
+                with st.spinner("🔄 Preprocessing data locally..."):
+                    processed = cd.preprocess(input_data_adapted)
+
+                with st.spinner("🤖 Predicting price locally..."):
+                    price = predict(processed)
+
+                st.success(f"💶 Estimated property price: **€{price:,.0f}**")
+
             except Exception as e:
-                st.error(f"❌ Error: {e}")
+                st.error(f"❌ Error during prediction: {e}")
                 st.exception(e)
 
 # ---------- VISUALIZE ----------
@@ -154,7 +153,6 @@ elif page == "📊 Visualize":
                 "hasswimmingpool": row.get("hasswimmingpool", 0),
             }
 
-            # ---------- Apply settings manually ----------
             input_dict_adapted = input_dict.copy()
             if not st.session_state.use_region:
                 input_dict_adapted["zip_code"] = 9999
@@ -205,7 +203,6 @@ elif page == "📊 Visualize":
         sample_df["Region"] = sample_df.apply(get_region, axis=1)
         sample_df["Property Type"] = sample_df.apply(get_property_type, axis=1)
 
-        # Plot according to viz_type
         if st.session_state.viz_type == "Histogram":
             fig = px.histogram(
                 sample_df.dropna(subset=["PredictedPrice"]),
@@ -218,7 +215,7 @@ elif page == "📊 Visualize":
                 labels={"PredictedPrice": "Predicted Price (€)"},
                 color_discrete_sequence=px.colors.qualitative.Set2
             )
-        else:  # Boxplot
+        else:
             fig = px.box(
                 sample_df.dropna(subset=["PredictedPrice"]),
                 x="Region",
