@@ -1,46 +1,74 @@
 import streamlit as st
+from prediction import predict_price
 import pandas as pd
 from catboost import CatBoostRegressor
-from joblib import load
 
-# --- Load the trained CatBoost model ---
 @st.cache_resource
 def load_model():
-    return load("model/catboost.joblib")
+    # Load the CatBoost model from .cbm format — ensure this file exists in 'model/'
+    model = CatBoostRegressor()
+    model.load_model("model/catboost_model.cbm")  # use .cbm NOT .joblib
+    return model
 
-# --- Streamlit UI ---
-st.title("🏠 Real Estate Price Predictor")
+model = load_model()
 
-st.markdown("Enter property details to predict the price.")
+st.set_page_config(page_title="Real Estate Price Predictor", layout="centered")
 
-# Example user inputs
-postal_code = st.number_input("Postal Code", value=1000)
-area = st.number_input("Area (m²)", value=100)
-rooms = st.slider("Number of Rooms", 1, 10, value=3)
-has_garden = st.checkbox("Has Garden?")
-garden_area = st.number_input("Garden Area (m²)", value=0 if not has_garden else 20)
-has_terrace = st.checkbox("Has Terrace?")
-terrace_area = st.number_input("Terrace Area (m²)", value=0 if not has_terrace else 10)
-facades = st.selectbox("Number of Facades", [2, 3, 4])
-building_state = st.selectbox("Building Condition", ["NEW", "GOOD", "TO RENOVATE"])
+st.title("🏡 Real Estate Price Prediction")
+st.write("Fill in the property details below to get a price estimate.")
 
-# --- Prediction button ---
-if st.button("Predict Price"):
-    input_data = pd.DataFrame([{
-        "postal_code": postal_code,
+# --- Form inputs
+with st.form("prediction_form"):
+    col1, col2 = st.columns(2)
+
+    with col1:
+        area = st.number_input("Area (m²)", value=100)
+        rooms_number = st.number_input("Number of rooms", value=3)
+        zip_code = st.number_input("ZIP code", value=1000)
+        land_area = st.number_input("Land area (m²)", value=200)
+        garden = st.checkbox("Garden")
+        garden_area = st.number_input("Garden area (m²)", value=0 if not garden else 50)
+
+    with col2:
+        equipped_kitchen = st.checkbox("Equipped kitchen")
+        full_address = st.text_input("Full address", value="1000 Brussels")
+        swimming_pool = st.checkbox("Swimming pool")
+        furnished = st.checkbox("Furnished")
+        open_fire = st.checkbox("Open fire")
+        terrace = st.checkbox("Terrace")
+        terrace_area = st.number_input("Terrace area (m²)", value=0 if not terrace else 15)
+        facades_number = st.number_input("Number of facades", value=2)
+        building_state = st.selectbox("Building state", ["NEW", "GOOD", "TO RENOVATE", "JUST RENOVATED"])
+        property_type = st.selectbox("Property type", ["HOUSE", "APARTMENT"])
+
+    submitted = st.form_submit_button("Predict Price 💰")
+
+# --- Prediction
+if submitted:
+    input_data = {
         "area": area,
-        "rooms_number": rooms,
-        "garden": has_garden,
+        "property_type": property_type,
+        "rooms_number": rooms_number,
+        "zip_code": zip_code,
+        "land_area": land_area,
+        "garden": garden,
         "garden_area": garden_area,
-        "terrace": has_terrace,
+        "equipped_kitchen": equipped_kitchen,
+        "full_address": full_address,
+        "swimming_pool": swimming_pool,
+        "furnished": furnished,
+        "open_fire": open_fire,
+        "terrace": terrace,
         "terrace_area": terrace_area,
-        "facades_number": facades,
+        "facades_number": facades_number,
         "building_state": building_state
-    }])
+    }
 
-    # Ensure categorical values are aligned with training
-    input_data["building_state"] = input_data["building_state"].astype(str)
+    # Convert to DataFrame (optional depending on your predict_price function)
+    df = pd.DataFrame([input_data])
 
-    # --- Run prediction ---
-    prediction = model.predict(input_data)[0]
-    st.success(f"💰 Estimated Price: €{round(prediction):,}")
+    try:
+        price = predict_price(model, df)
+        st.success(f"💸 Estimated price: €{int(price):,}")
+    except Exception as e:
+        st.error(f"Prediction failed: {e}")
