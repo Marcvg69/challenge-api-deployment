@@ -1,5 +1,6 @@
 import streamlit as st
-from prediction import predict_price
+from predict.prediction import predict_price
+
 import pandas as pd
 from catboost import CatBoostRegressor
 
