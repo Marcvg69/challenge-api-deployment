@@ -6,7 +6,6 @@ from predict.prediction import predict_price as predict
 import pandas as pd
 import plotly.express as px
 import time
-from joblib import load
 
 # ---------- PAGE CONFIGURATION ----------
 st.set_page_config(
@@ -50,7 +49,6 @@ st.markdown("""
 st.sidebar.title("Navigation")
 page = st.sidebar.radio("Go to", ["🏠 Home", "📈 Predict", "📊 Visualize", "⚙️ Settings"])
 
-# ---------- LOAD MODEL ----------
 
 # ---------- INIT SETTINGS ----------
 if "use_lat_long" not in st.session_state:
