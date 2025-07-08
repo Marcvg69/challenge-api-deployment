@@ -6,6 +6,7 @@ from predict.prediction import predict_price as predict
 import pandas as pd
 import plotly.express as px
 import time
+from joblib import load
 
 # ---------- PAGE CONFIGURATION ----------
 st.set_page_config(
@@ -50,13 +51,7 @@ st.sidebar.title("Navigation")
 page = st.sidebar.radio("Go to", ["🏠 Home", "📈 Predict", "📊 Visualize", "⚙️ Settings"])
 
 # ---------- LOAD MODEL ----------
-@st.cache_resource
-def load_model():
-    model = CatBoostRegressor()
-    model.load_model("model/catboost_model.cbm")
-    return model
-
-model = load_model()
+# model = load("model/catboost.joblib")
 
 # ---------- INIT SETTINGS ----------
 if "use_lat_long" not in st.session_state:
