@@ -51,7 +51,7 @@ st.sidebar.title("Navigation")
 page = st.sidebar.radio("Go to", ["🏠 Home", "📈 Predict", "📊 Visualize", "⚙️ Settings"])
 
 # ---------- LOAD MODEL ----------
-# model = load("model/catboost.joblib")
+
 
 # ---------- INIT SETTINGS ----------
 if "use_lat_long" not in st.session_state:
