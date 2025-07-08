@@ -73,12 +73,12 @@ def preprocess(input_dict: dict):
     
     # Pre processing EPC Score and Building condition
     df["building_state"] = df["building_state"].map({
-        "NEW": 0,
-        "JUST RENOVATED": 1,
-        "TO BE DONE UP": 2,
-        "GOOD": 3,
-        "TO RENOVATE": 4,
-        "TO RESTORE": 5
+        "NEW": 5,
+        "JUST RENOVATED": 4,
+        "TO BE DONE UP": 3,
+        "GOOD": 2,
+        "TO RENOVATE": 1,
+        "TO RESTORE": 0
     })
     if df["building_state"].isna().any():
         raise ValueError("Invalid building_state")
