@@ -13,7 +13,7 @@ WORKDIR /app
 COPY requirements.txt .
 
 # 5️⃣ Install Python dependencies
-RUN pip3 install --no-cache-dir -r requirements.txt
+RUN pip3 install --no-cache-dir -r requirements2.txt
 
 # 6️⃣ Copy the rest of your project into /app
 COPY . .
