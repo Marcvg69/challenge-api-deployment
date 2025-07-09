@@ -4,3 +4,4 @@ plotly
 catboost
 scikit-learn
 Pillow
+streamlit-option-menu
