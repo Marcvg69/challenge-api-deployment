@@ -151,19 +151,19 @@ and
 
 # Visuals
 
-Live on render - fastapi:
+## Live on render - fastapi:
 ![image](https://github.com/user-attachments/assets/784e102f-f68d-4232-b43f-268015de7073)
 
-Video demo of fastapi testing with status codes 200, 422, 400:
+## Video demo of fastapi testing with status codes 200, 422, 400:
 [![Watch the video](https://img.youtube.com/vi/OqZbFmGOrvY/maxresdefault.jpg)](https://youtu.be/OqZbFmGOrvY)
 
-Live on streamlit - price prediction:
+## Live on streamlit - price prediction:
 ![Screenshot 2025-07-09 150411](https://github.com/user-attachments/assets/665c6b93-4766-4c43-a49c-c5ca6c7d4428)
 
-Streamlit - interactive map:
+## Streamlit - interactive map:
 ![Screenshot 2025-07-08 194108](https://github.com/user-attachments/assets/7064c2f1-6ca8-4557-8117-a1a4b05c2d7b)
 
-Streamlit - apartment and houses on interactive map:
+### Streamlit - apartment and houses on interactive map:
 ![Screenshot 2025-07-09 150208](https://github.com/user-attachments/assets/39a342b3-1788-4a9b-a59c-c2046dfa692c)
 ![Screenshot 2025-07-09 150226](https://github.com/user-attachments/assets/ee306cca-6929-4cd8-ba7b-c3134c293781)
 
