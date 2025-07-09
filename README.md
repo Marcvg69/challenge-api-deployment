@@ -157,7 +157,7 @@ and
 ## Video demo of fastapi testing with status codes 200, 422, 400:
 [![Watch the video](https://img.youtube.com/vi/OqZbFmGOrvY/maxresdefault.jpg)](https://youtu.be/OqZbFmGOrvY)
 
-## Live on streamlit - price prediction:
+## Live on streamlit - price prediction (https://stl-immoeliza.streamlit.app/):
 ![Screenshot 2025-07-09 150411](https://github.com/user-attachments/assets/665c6b93-4766-4c43-a49c-c5ca6c7d4428)
 
 ## Streamlit - interactive map:
