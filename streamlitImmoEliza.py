@@ -54,7 +54,7 @@ st.markdown("""
 
 # ---------- SIDEBAR ----------
 st.sidebar.title("Navigation")
-page = st.sidebar.radio("Go to", ["🏠 Home", "📈 Predict", "📊 Visualize", "⚙️ Settings"])
+page = st.sidebar.radio("Go to", ["🏠 Home", "📈 Predict", "📊 Visualize"])
 
 
 # ---------- INIT SETTINGS ----------
